@@ -87,8 +87,10 @@ sendCommand conn command@(Command _ respParser) = do
  
 decodeAlive :: Int -> ByteString -> Maybe Bool
 decodeAlive devnum jsonbs = do
-	x <- decode jsonbs ^. key "DEVS" . nth devnum . key "Status" :: Maybe ByteString
-	return (x == "Alive")
+	let getKey k = decode jsonbs ^. key "DEVS" . nth devnum . key k
+	status <- getKey "Status" :: Maybe ByteString
+	mhs5s <- getKey "MHS 5s" :: Maybe Double
+	return (status == "Alive" && mhs5s > 0.1) 
 
 devsJson :: ByteString
 devsJson = "{\"STATUS\":[{\"STATUS\":\"S\",\"When\":1387728554,\"Code\":9,\"Msg\":\"1 GPU(s) - 0 ASC(s) - 0 PGA(s) - \",\"Description\":\"cgminer 3.7.2\"}],\"DEVS\":[{\"GPU\":0,\"Enabled\":\"Y\",\"Status\":\"Alive\",\"Temperature\":0.00,\"Fan Speed\":0,\"Fan Percent\":0,\"GPU Clock\":0,\"Memory Clock\":0,\"GPU Voltage\":0.000,\"GPU Activity\":0,\"Powertune\":0,\"MHS av\":0.00,\"MHS 5s\":0.00,\"Accepted\":0,\"Rejected\":0,\"Hardware Errors\":0,\"Utility\":0.00,\"Intensity\":\"D\",\"Last Share Pool\":-1,\"Last Share Time\":0,\"Total MH\":0.0000,\"Diff1 Work\":0,\"Difficulty Accepted\":0.00000000,\"Difficulty Rejected\":0.00000000,\"Last Share Difficulty\":0.00000000,\"Last Valid Work\":1387728160,\"Device Hardware%\":0.0000,\"Device Rejected%\":0.0000,\"Device Elapsed\":378}],\"id\":1}"
