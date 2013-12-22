@@ -24,9 +24,9 @@ restart = Command "restart" $ const (Just ())
 oneSecond :: Int
 oneSecond = 1000 * 1000
 
-restartIfDead :: Int -> IO ()
-restartIfDead port = forever $ do
-	malive <- sendCommandInNewStream port (devAlive 0)
+restartIfDead :: Int -> Int -> IO ()
+restartIfDead devnum port = forever $ do
+	malive <- sendCommandInNewStream port (devAlive devnum)
 	case malive of
 		Nothing -> return ()
 		Just alive ->
@@ -47,9 +47,11 @@ waitForQuit = do
 main :: IO ()
 main = do
 	args <- getArgs
-	forM_ args $ \arg ->
-		void . forkIO $ restartIfDead (read arg :: Int)
-	putStrLn $ "Listening on ports: " ++ concat (intersperse ", " args)
+	let dev = read (head args) :: Int
+	let ports = drop 1 args
+	forM_ ports $ \port ->
+		void . forkIO $ restartIfDead dev (read port :: Int)
+	putStrLn $ "Listening on ports: " ++ concat (intersperse ", " ports)
 	waitForQuit
 
 removeNullTerminator :: ByteString -> ByteString
