@@ -47,11 +47,10 @@ waitForQuit = do
 main :: IO ()
 main = do
 	args <- getArgs
-	let dev = read (head args) :: Int
-	let ports = drop 1 args
-	forM_ ports $ \port ->
-		void . forkIO $ restartIfDead dev (read port :: Int)
-	putStrLn $ "Listening on ports: " ++ concat (intersperse ", " ports)
+	forM_ args $ \arg ->
+		let (dev, port) = read arg :: (Int,Int) in
+		void . forkIO $ restartIfDead dev port
+	putStrLn $ "Listening on devices/ports: " ++ concat (intersperse ", " args)
 	waitForQuit
 
 removeNullTerminator :: ByteString -> ByteString
